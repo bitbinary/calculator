@@ -1,5 +1,7 @@
 .wrapper {
   height: 748px;
+  max-width: 1470px;
+  min-width: 480px;
   padding: 20px;
   gap: 10px;
   box-sizing: border-box;
@@ -7,6 +9,6 @@
   background-color: #000000;
   display: flex;
   flex-wrap: wrap;
-  flex-shrink: 0;
+  flex: 1 0;
   justify-content: space-around;
 }

@@ -75,8 +75,6 @@ function App() {
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
-      console.log(entries[0].contentRect.width);
-
       if (entries[0].contentRect.width > 1370 && !isViewScientific)
         setisViewScientific(true);
       if (entries[0].contentRect.width < 1370 && isViewScientific)
@@ -86,6 +84,7 @@ function App() {
     resizeObserver.observe(document.getElementById("myApp"));
 
     return () => {
+      resizeObserver.unobserve(document.getElementById("myApp"))
       resizeObserver.disconnect();
     };
   }, [isViewScientific]);
