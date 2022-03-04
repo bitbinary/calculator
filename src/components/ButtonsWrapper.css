@@ -1,0 +1,7 @@
+.buttons-wrapper {
+    display: grid;
+    grid-gap: 20px;
+    justify-items: center;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(5, minmax(0, 1fr));
+}
