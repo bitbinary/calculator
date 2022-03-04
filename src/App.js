@@ -22,30 +22,18 @@ function App() {
   };
 
   const handleSignChange = () => {
-    if (operand)
-      setOperand((operand) =>
-        Number(parseFloat(operand) * -1)
-          .toString()
-          .toString()
-      );
-    else if (result)
-      setResult((result) =>
-        Number(parseFloat(result) * -1).toString()
-      ).toString();
+    if (operand) setOperand((operand) => (parseFloat(operand) * -1).toString());
+    else if (result) setResult((result) => (parseFloat(result) * -1).toString());
   };
   const handlePercentage = () => {
     if (operand)
       setOperand((operand) =>
         Number(parseFloat(operand) * 0.01)
-          .toFixed(6)
-          .toString()
           .toString()
       );
     else if (result)
       setResult((result) =>
         Number(parseFloat(result) * 0.01)
-          .toFixed(6)
-          .toString()
           .toString()
       );
   };
@@ -60,7 +48,7 @@ function App() {
     }
   };
   const handleOperand = (value) => {
-    if(operand.includes('.') && value ==='.') return
+    if (operand.includes(".") && value === ".") return;
     setOperand((operand) => operand + value);
   };
 
