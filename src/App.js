@@ -22,15 +22,32 @@ function App() {
   };
 
   const handleSignChange = () => {
-    if (operand) setOperand((operand) => (parseFloat(operand) * -1).toString());
+    if (operand)
+      setOperand((operand) =>
+        Number(parseFloat(operand) * -1)
+          .toString()
+          .toString()
+      );
     else if (result)
-      setResult((result) => (parseFloat(result) * -1).toString());
+      setResult((result) =>
+        Number(parseFloat(result) * -1).toString()
+      ).toString();
   };
   const handlePercentage = () => {
     if (operand)
-      setOperand((operand) => (parseFloat(operand) * 0.01).toString());
+      setOperand((operand) =>
+        Number(parseFloat(operand) * 0.01)
+          .toFixed(6)
+          .toString()
+          .toString()
+      );
     else if (result)
-      setResult((result) => (parseFloat(result) * 0.01).toString());
+      setResult((result) =>
+        Number(parseFloat(result) * 0.01)
+          .toFixed(6)
+          .toString()
+          .toString()
+      );
   };
   const handleOperator = (value) => {
     if (operator || result) {
@@ -43,6 +60,7 @@ function App() {
     }
   };
   const handleOperand = (value) => {
+    if(operand.includes('.') && value ==='.') return
     setOperand((operand) => operand + value);
   };
 
@@ -53,14 +71,23 @@ function App() {
       setOperand("");
       return;
     } else {
-      var expression = `${result} ${operator} ${operand}`;
-      expression = new String(expression);
-      let answer = eval(expression.toString());
+      let answer;
+      if (operator === "+") {
+        answer = parseFloat(result) + parseFloat(operand);
+      } else if (operator === "-") {
+        answer = parseFloat(result) - parseFloat(operand);
+      } else if (operator === "*") {
+        answer = parseFloat(result) * parseFloat(operand);
+      } else if (operator === "/") {
+        answer = parseFloat(result) / parseFloat(operand);
+      }
       setOperand("");
       setOperator("");
-      setResult(answer);
+      setResult(numString(answer));
     }
   };
+
+  const numString = (num) => Number(Number(num).toFixed(10)).toString();
 
   return (
     <div className="App">
