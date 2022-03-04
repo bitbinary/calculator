@@ -1,11 +1,12 @@
 .wrapper {
-  width: 480px;
   height: 748px;
   padding: 20px;
+  gap: 10px;
+  box-sizing: border-box;
   border-radius: 10px;
   background-color: #000000;
   display: flex;
+  flex-wrap: wrap;
   flex-shrink: 0;
-  flex-direction: column;
   justify-content: space-around;
 }

@@ -20,7 +20,7 @@
   }
   
   .button.extended {
-    width: 100%;
+    width: 90%;
     grid-column: 1 / span 2;
     border-radius: 57.5px;
     position: relative;

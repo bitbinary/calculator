@@ -13,6 +13,7 @@ function App() {
   const [operator, setOperator] = useState("");
   const [operand, setOperand] = useState("1936");
   const [result, setResult] = useState("");
+  const [isViewScientific, setisViewScientific] = useState(false);
 
   const handleClear = () => {
     setExpression("");
@@ -23,19 +24,14 @@ function App() {
 
   const handleSignChange = () => {
     if (operand) setOperand((operand) => (parseFloat(operand) * -1).toString());
-    else if (result) setResult((result) => (parseFloat(result) * -1).toString());
+    else if (result)
+      setResult((result) => (parseFloat(result) * -1).toString());
   };
   const handlePercentage = () => {
     if (operand)
-      setOperand((operand) =>
-        Number(parseFloat(operand) * 0.01)
-          .toString()
-      );
+      setOperand((operand) => Number(parseFloat(operand) * 0.01).toString());
     else if (result)
-      setResult((result) =>
-        Number(parseFloat(result) * 0.01)
-          .toString()
-      );
+      setResult((result) => Number(parseFloat(result) * 0.01).toString());
   };
   const handleOperator = (value) => {
     if (operator || result) {
@@ -77,13 +73,50 @@ function App() {
 
   const numString = (num) => Number(Number(num).toFixed(10)).toString();
 
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      console.log(entries[0].contentRect.width);
+
+      if (entries[0].contentRect.width > 1370 && !isViewScientific)
+        setisViewScientific(true);
+      if (entries[0].contentRect.width < 1370 && isViewScientific)
+        setisViewScientific(false);
+    });
+
+    resizeObserver.observe(document.getElementById("myApp"));
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [isViewScientific]);
+
   return (
-    <div className="App">
+    <div id="myApp" className="App">
       <Wrapper>
         <Screen>
           <Expression>{expression}</Expression>
           <Result>{operand || result || 0}</Result>
         </Screen>
+        {isViewScientific && (
+          <ButtonsWrapper
+            style={{
+              gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+              flex: "1 0 59%",
+            }}
+          >
+            {SCIENTIFIC_BUTTONS.map((value, index) => {
+              return (
+                <Button
+                  key={index}
+                  onClick={() => handleClear()}
+                  style={{ fontSize: "24px" }}
+                  label={value.label}
+                  type={value.type}
+                ></Button>
+              );
+            })}
+          </ButtonsWrapper>
+        )}
         <ButtonsWrapper>
           <Button
             onClick={() => handleClear()}
@@ -186,4 +219,156 @@ function App() {
   );
 }
 
+const SCIENTIFIC_BUTTONS = [
+  {
+    label: "{",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "}",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "mc",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "m+",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "m-",
+    type: "2nd",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "mr",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "2X",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "x2",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "x3",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "xy",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "ex",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "10x",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "1/x",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "2rX",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "3rX",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "yrX",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "ln",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "log10",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "x!",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "sin",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "cos",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "tan",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "e",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "EE",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "Rad",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "sinh",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "cosh",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "tanh",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "pi",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+  {
+    label: "Rand",
+    type: "",
+    handleClick: "handleScientificKey",
+  },
+];
 export default App;
