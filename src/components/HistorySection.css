@@ -1,7 +1,10 @@
 .history-section{
-    
+    background-color: #e6e6e6;
+    padding: 20px 40px;
+    box-sizing: border-box;
 }
 .history-section .title{
     font-size: 24px;
     font-weight: bold;
+    background-color: #cecece;
 }

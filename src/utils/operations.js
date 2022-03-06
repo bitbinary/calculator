@@ -10,7 +10,6 @@ export const defaultCalcState = {
 export const calucaluteCurrentResult = (op1, opr, op2) => {
     let answer;
     if (op1 === "" || op2 === "" || opr === "") return op1 || op2;
-
     if (opr === "+") {
       answer = parseFloat(op1) + parseFloat(op2);
     } else if (opr === "-") {

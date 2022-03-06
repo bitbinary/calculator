@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-
 import "./App.css";
+
+// Component Imports
 import Button from "./components/Button";
 import ButtonsWrapper from "./components/ButtonsWrapper";
 import HistorySection from "./components/HistorySection";
@@ -8,6 +9,8 @@ import HistoryWrapper from "./components/HistoryWrapper";
 import Result from "./components/Result";
 import Screen from "./components/Screen";
 import Wrapper from "./components/Wrapper";
+
+// Function Imports
 import {
   readObjSafe,
   readObjFromLocalStorage,
@@ -18,31 +21,38 @@ import {
 } from "./utils/helpers";
 import { calucaluteCurrentResult, defaultCalcState } from "./utils/operations";
 
+// Config declarations
 const CONFIG = {
   responsiveBreakpoint: 1370,
   historySpanInDays: 2,
 };
 
+// Function to get the history value from the local storage,
+// then filter out the history before the given number of days.
 const getHistoryDefaultValue = () => {
   return trimObjectByKey(
     readObjFromLocalStorage("calculationHistory") || {},
     checkDateAfterGivenDate(getDateNDaysAgo(CONFIG.historySpanInDays))
   );
 };
+
 function App() {
-  const [expression, setExpression] = useState("");
-  const [history, setHistory] = useState(getHistoryDefaultValue());
-  const [calc, setCalc] = useState({ ...defaultCalcState });
-  const [result, setResult] = useState("");
+  const [expression, setExpression] = useState(""); // Store the current expression value
+  const [history, setHistory] = useState(getHistoryDefaultValue()); // stores the history off calculations over the past n number of days
+  const [calc, setCalc] = useState({ ...defaultCalcState }); // Caluclation object that holds the operands and operators
+  const [result, setResult] = useState(""); // displays the result on the result screen
+  const [isViewScientific, setisViewScientific] = useState(false); // Controls the visibility of the scientific buttons
 
-  const [isViewScientific, setisViewScientific] = useState(false);
-
+  // clear the states for new calculation
   const handleClear = () => {
     setExpression("");
     setCalc({ ...defaultCalcState });
     setResult("");
   };
 
+  // performs sign change on the current result.
+  // Also the opreand 2 or opreand 1 holds the result in incomplete calculations.
+  // Thus handles the sign change for them as well
   const handleSignChange = () => {
     let calculation = { ...calc };
     if (result !== "")
@@ -53,6 +63,10 @@ function App() {
       calculation.operand1 = calucaluteCurrentResult(calc.operand1, "x", -1);
     setCalc({ ...calculation });
   };
+
+  // performs percentage function on the current result.
+  // Also the opreand 2 or opreand 1 holds the result in incomplete calculations.
+  // Thus handles the percentage function for them as well
   const handlePercentage = () => {
     let calculation = { ...calc };
     if (result !== "")
@@ -64,6 +78,11 @@ function App() {
     setCalc({ ...calculation });
   };
 
+  // Handles the clicks from all the number and sign buttons.
+  // The value is stores to operands when the inputs are provided
+  // The value is stores to operator when the operator is provided
+  // The result is calculated when there  both operands and opreator are entered completly and kept as operator 1 for next calculation.
+  // The expression is build whenever the input is recieved and is stored to the history when the '=' sign is pressed
   const handleOnClick = (type, value) => {
     if (type !== "operator" && calc.operand2 !== "" && calc.operator !== "") {
       setExpression(expression + calc.operand2 + calc.operator);
@@ -112,7 +131,12 @@ function App() {
       });
     }
   };
+
+  // Funtion to handle the scientific key press
   const handleScientificKey = () => null;
+
+  // Contains the mappings to the button functions that are used to identify
+  // the corresponsing functions from the button configuration.
   const functionMaps = Object.freeze({
     handleClear,
     handleSignChange,
@@ -120,10 +144,13 @@ function App() {
     handleOnClick,
     handleScientificKey,
   });
+
+  // Updated the history to the local storage for persistant storage
   useEffect(() => {
     saveObjtoLocalStorage("calculationHistory", history);
   }, [history]);
 
+  // Creates a component array of the histories based on the date of calculation
   const getHistories = () => {
     let histories;
     Object.entries(history).map(
@@ -139,6 +166,7 @@ function App() {
     return histories;
   };
 
+  // observes the change in the app componenent size and updated the component property for responsivenes
   useEffect(() => {
     const resizeObserver = new ResizeObserver(
       (entries) => {
@@ -162,7 +190,6 @@ function App() {
       },
       [isViewScientific]
     );
-
     resizeObserver.observe(document.getElementById("myApp"));
 
     return () => {
@@ -219,15 +246,17 @@ function App() {
   );
 }
 
+// Configuration for scientific buttons. 
+// ORDER OF THE OBJECTS IN THE ARRAY IS IMPORTANT
 const SCIENTIFIC_BUTTONS = [
   {
-    label: "{",
+    label: "(",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
-    label: "}",
+    label: ")",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
@@ -257,37 +286,37 @@ const SCIENTIFIC_BUTTONS = [
     handleClick: "handleScientificKey",
   },
   {
-    label: "2X",
+    label: "2ⁿᵈ",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
-    label: "x2",
+    label: "x²",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
-    label: "x3",
+    label: "x³",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
-    label: "xy",
+    label: "xʸ",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
-    label: "ex",
+    label: "eˣ",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
-    label: "10x",
+    label: "10ˣ",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
@@ -299,19 +328,19 @@ const SCIENTIFIC_BUTTONS = [
     handleClick: "handleScientificKey",
   },
   {
-    label: "2rX",
+    label: "2√x",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
-    label: "3rX",
+    label: "3√x",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
-    label: "yrX",
+    label: "y√x",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
@@ -323,7 +352,7 @@ const SCIENTIFIC_BUTTONS = [
     handleClick: "handleScientificKey",
   },
   {
-    label: "log10",
+    label: "log₁₀",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
@@ -389,7 +418,7 @@ const SCIENTIFIC_BUTTONS = [
     handleClick: "handleScientificKey",
   },
   {
-    label: "pi",
+    label: "π",
     classTypes: "normal",
     type: "scientific",
     handleClick: "handleScientificKey",
@@ -402,6 +431,8 @@ const SCIENTIFIC_BUTTONS = [
   },
 ];
 
+// Configuration for normal buttons. 
+// ORDER OF THE OBJECTS IN THE ARRAY IS IMPORTANT
 const NORMAL_BUTTONS = [
   {
     label: "C",
