@@ -4,5 +4,5 @@
     margin: 5px;
     text-align: right;
     word-wrap: break-word;
-    height:100px
+    min-height:100px
 }

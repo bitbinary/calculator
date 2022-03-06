@@ -9,17 +9,29 @@ import Result from "./components/Result";
 import Screen from "./components/Screen";
 import Wrapper from "./components/Wrapper";
 import {
-  getHistoryValue,
+  readObjSafe,
   readObjFromLocalStorage,
   saveObjtoLocalStorage,
+  trimObjectByKey,
+  checkDateAfterGivenDate,
+  getDateNDaysAgo,
 } from "./utils/helpers";
 import { calucaluteCurrentResult, defaultCalcState } from "./utils/operations";
-const RESPONSIVE_BREAKPOINT = 1370;
+
+const CONFIG = {
+  responsiveBreakpoint: 1370,
+  historySpanInDays: 2,
+};
+
+const getHistoryDefaultValue = () => {
+  return trimObjectByKey(
+    readObjFromLocalStorage("calculationHistory") || {},
+    checkDateAfterGivenDate(getDateNDaysAgo(CONFIG.historySpanInDays))
+  );
+};
 function App() {
   const [expression, setExpression] = useState("");
-  const [history, setHistory] = useState(
-    readObjFromLocalStorage("calculationHistory") || {}
-  );
+  const [history, setHistory] = useState(getHistoryDefaultValue());
   const [calc, setCalc] = useState({ ...defaultCalcState });
   const [result, setResult] = useState("");
 
@@ -62,7 +74,7 @@ function App() {
       });
       setResult("");
     } else if (type !== "operator") {
-      if (calc.operand2.includes(".") && value ==='.') return;
+      if (calc.operand2.includes(".") && value === ".") return;
       setCalc({
         ...calc,
         operand2: calc.operand2 + value,
@@ -81,12 +93,13 @@ function App() {
         operator: value,
       });
       if (value === "=") {
+        if (calc.operand1 === "" || calc.operand2 === "") return;
         let date = new Date().toDateString();
         let currentExpression = `${expression}${calc.operand2} = ${currentResult}`;
 
         setHistory({
           ...history,
-          [date]: [...getHistoryValue(history, date), currentExpression],
+          [date]: [...readObjSafe(history, date), currentExpression],
         });
 
         handleClear();
@@ -127,24 +140,28 @@ function App() {
   };
 
   useEffect(() => {
-    //TODO : read the history from local storage
-    const resizeObserver = new ResizeObserver((entries) => {
-      let wrapper = entries[0];
-      if (
-        wrapper.contentRect.width > RESPONSIVE_BREAKPOINT &&
-        !isViewScientific
-      ) {
-        setisViewScientific(true);
-        wrapper.target.style.width = "1370px";
-      }
-      if (
-        wrapper.contentRect.width < RESPONSIVE_BREAKPOINT &&
-        isViewScientific
-      ) {
-        setisViewScientific(false);
-        wrapper.target.style.width = "520px";
-      }
-    });
+    const resizeObserver = new ResizeObserver(
+      (entries) => {
+        let app = entries[0];
+
+        if (
+          app.contentRect.width > CONFIG.responsiveBreakpoint &&
+          !isViewScientific
+        ) {
+          setisViewScientific(true);
+          app.target.getElementsByClassName("wrapper")[0].style.width =
+            "1370px";
+        }
+        if (
+          app.contentRect.width < CONFIG.responsiveBreakpoint &&
+          isViewScientific
+        ) {
+          setisViewScientific(false);
+          app.target.getElementsByClassName("wrapper")[0].style.width = "520px";
+        }
+      },
+      [isViewScientific]
+    );
 
     resizeObserver.observe(document.getElementById("myApp"));
 
@@ -153,12 +170,13 @@ function App() {
       resizeObserver.disconnect();
     };
   }, [isViewScientific]);
-
   return (
     <div id="myApp" className="App">
-      <Wrapper>
+      <Wrapper id="wrapper">
         <Screen>
-          <Result>{result || calc.operand2}</Result>
+          <Result>
+            {Number(result || calc.operand2).toLocaleString("en-US")}
+          </Result>
         </Screen>
         {isViewScientific && (
           <ButtonsWrapper
