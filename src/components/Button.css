@@ -19,7 +19,7 @@
     filter: brightness(250%);
   }
   
-  .button.extended {
+  .button.extended2 {
     width: 90%;
     grid-column: 1 / span 2;
     border-radius: 57.5px;
@@ -28,11 +28,11 @@
     padding: 44px;
   }
   
-  .button.action {
+  .button.gray {
     color: black;
     background: #a5a5a5;
   }
   
-  .button.operator {
+  .button.yellow {
     background: #fb9505;
   }

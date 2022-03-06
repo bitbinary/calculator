@@ -1,8 +1,21 @@
 import React from "react";
 import "./Button.css";
-export default function Button({ label, handleClick, type, style, ...rest }) {
+export default function Button({
+  label,
+  handleClick,
+  type,
+  classTypes,
+  style,
+  ...rest
+}) {
   return (
-    <button className={`button  ${type || ""}`} style={style} {...rest}>
+    <button
+      onClick={() => handleClick(type, label)}
+      className={`button  ${classTypes || ""}`}
+      style={style}
+      {...rest}
+      type={type}
+    >
       {label}
     </button>
   );

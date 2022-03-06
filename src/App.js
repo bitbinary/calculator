@@ -3,88 +3,153 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import Button from "./components/Button";
 import ButtonsWrapper from "./components/ButtonsWrapper";
-import Expression from "./components/Expression";
+import HistorySection from "./components/HistorySection";
+import HistoryWrapper from "./components/HistoryWrapper";
 import Result from "./components/Result";
 import Screen from "./components/Screen";
 import Wrapper from "./components/Wrapper";
-
+import {
+  getHistoryValue,
+  readObjFromLocalStorage,
+  saveObjtoLocalStorage,
+} from "./utils/helpers";
+import { calucaluteCurrentResult, defaultCalcState } from "./utils/operations";
+const RESPONSIVE_BREAKPOINT = 1370;
 function App() {
   const [expression, setExpression] = useState("");
-  const [operator, setOperator] = useState("");
-  const [operand, setOperand] = useState("1936");
+  const [history, setHistory] = useState(
+    readObjFromLocalStorage("calculationHistory") || {}
+  );
+  const [calc, setCalc] = useState({ ...defaultCalcState });
   const [result, setResult] = useState("");
+
   const [isViewScientific, setisViewScientific] = useState(false);
 
   const handleClear = () => {
     setExpression("");
-    setOperand("");
-    setOperator("");
+    setCalc({ ...defaultCalcState });
     setResult("");
   };
 
   const handleSignChange = () => {
-    if (operand) setOperand((operand) => (parseFloat(operand) * -1).toString());
-    else if (result)
-      setResult((result) => (parseFloat(result) * -1).toString());
+    let calculation = { ...calc };
+    if (result !== "")
+      calculation.result = calucaluteCurrentResult(result, "x", -1);
+    if (calc.operand2 !== "")
+      calculation.operand2 = calucaluteCurrentResult(calc.operand2, "x", -1);
+    else if (calc.operand1 !== "")
+      calculation.operand1 = calucaluteCurrentResult(calc.operand1, "x", -1);
+    setCalc({ ...calculation });
   };
   const handlePercentage = () => {
-    if (operand)
-      setOperand((operand) => Number(parseFloat(operand) * 0.01).toString());
-    else if (result)
-      setResult((result) => Number(parseFloat(result) * 0.01).toString());
-  };
-  const handleOperator = (value) => {
-    if (operator || result) {
-      setOperator(value);
-    } else if (operand) {
-      setOperator(value);
-      setResult(operand);
-      setOperand("");
-    } else {
-    }
-  };
-  const handleOperand = (value) => {
-    if (operand.includes(".") && value === ".") return;
-    setOperand((operand) => operand + value);
+    let calculation = { ...calc };
+    if (result !== "")
+      calculation.result = calucaluteCurrentResult(result, "x", 0.01);
+    if (calc.operand2 !== "")
+      calculation.operand2 = calucaluteCurrentResult(calc.operand2, "x", 0.01);
+    else if (calc.operand1 !== "")
+      calculation.operand1 = calucaluteCurrentResult(calc.operand1, "x", 0.01);
+    setCalc({ ...calculation });
   };
 
-  const handleEvaluation = () => {
-    if (!result) {
-      setResult(operand);
-      setOperator("");
-      setOperand("");
-      return;
-    } else {
-      let answer;
-      if (operator === "+") {
-        answer = parseFloat(result) + parseFloat(operand);
-      } else if (operator === "-") {
-        answer = parseFloat(result) - parseFloat(operand);
-      } else if (operator === "*") {
-        answer = parseFloat(result) * parseFloat(operand);
-      } else if (operator === "/") {
-        answer = parseFloat(result) / parseFloat(operand);
+  const handleOnClick = (type, value) => {
+    if (type !== "operator" && calc.operand2 !== "" && calc.operator !== "") {
+      setExpression(expression + calc.operand2 + calc.operator);
+      setCalc({
+        ...calc,
+        operand2: value,
+        operator: "",
+      });
+      setResult("");
+    } else if (type !== "operator") {
+      if (calc.operand2.includes(".") && value ==='.') return;
+      setCalc({
+        ...calc,
+        operand2: calc.operand2 + value,
+        operator: "",
+      });
+      setResult("");
+    } else if (type === "operator" && calc.operator === "") {
+      let currentResult = calucaluteCurrentResult(
+        calc.operand1,
+        expression.slice(-1),
+        calc.operand2
+      );
+      setCalc({
+        ...calc,
+        operand1: currentResult,
+        operator: value,
+      });
+      if (value === "=") {
+        let date = new Date().toDateString();
+        let currentExpression = `${expression}${calc.operand2} = ${currentResult}`;
+
+        setHistory({
+          ...history,
+          [date]: [...getHistoryValue(history, date), currentExpression],
+        });
+
+        handleClear();
       }
-      setOperand("");
-      setOperator("");
-      setResult(numString(answer));
+      setResult(currentResult);
+    } else if (type === "operator") {
+      setCalc({
+        ...calc,
+        operator: value,
+      });
     }
   };
+  const handleScientificKey = () => null;
+  const functionMaps = Object.freeze({
+    handleClear,
+    handleSignChange,
+    handlePercentage,
+    handleOnClick,
+    handleScientificKey,
+  });
+  useEffect(() => {
+    saveObjtoLocalStorage("calculationHistory", history);
+  }, [history]);
 
-  const numString = (num) => Number(Number(num).toFixed(10)).toString();
+  const getHistories = () => {
+    let histories;
+    Object.entries(history).map(
+      ([key, value]) =>
+        (histories = (
+          <HistorySection
+            key={key}
+            histories={value}
+            title={key}
+          ></HistorySection>
+        ))
+    );
+    return histories;
+  };
 
   useEffect(() => {
+    //TODO : read the history from local storage
     const resizeObserver = new ResizeObserver((entries) => {
-      if (entries[0].contentRect.width > 1370 && !isViewScientific)
+      let wrapper = entries[0];
+      if (
+        wrapper.contentRect.width > RESPONSIVE_BREAKPOINT &&
+        !isViewScientific
+      ) {
         setisViewScientific(true);
-      if (entries[0].contentRect.width < 1370 && isViewScientific)
+        wrapper.target.style.width = "1370px";
+      }
+      if (
+        wrapper.contentRect.width < RESPONSIVE_BREAKPOINT &&
+        isViewScientific
+      ) {
         setisViewScientific(false);
+        wrapper.target.style.width = "520px";
+      }
     });
 
     resizeObserver.observe(document.getElementById("myApp"));
 
     return () => {
-      resizeObserver.unobserve(document.getElementById("myApp"))
+      resizeObserver.unobserve(document.getElementById("myApp"));
       resizeObserver.disconnect();
     };
   }, [isViewScientific]);
@@ -93,8 +158,7 @@ function App() {
     <div id="myApp" className="App">
       <Wrapper>
         <Screen>
-          <Expression>{expression}</Expression>
-          <Result>{operand || result || 0}</Result>
+          <Result>{result || calc.operand2}</Result>
         </Screen>
         {isViewScientific && (
           <ButtonsWrapper
@@ -107,7 +171,7 @@ function App() {
               return (
                 <Button
                   key={index}
-                  onClick={() => handleClear()}
+                  handleClick={functionMaps[value.handleClick]}
                   style={{ fontSize: "24px" }}
                   label={value.label}
                   type={value.type}
@@ -116,104 +180,23 @@ function App() {
             })}
           </ButtonsWrapper>
         )}
-        <ButtonsWrapper>
-          <Button
-            onClick={() => handleClear()}
-            label={"C"}
-            type="action"
-          ></Button>
-          <Button
-            onClick={() => handleSignChange()}
-            label={"+/-"}
-            type="action"
-          ></Button>
-          <Button
-            onClick={() => handlePercentage()}
-            label={"%"}
-            type="action"
-          ></Button>
-          <Button
-            onClick={() => handleOperator("/")}
-            label={"/"}
-            type="operator"
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"7"}
-            type=""
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"8"}
-            type=""
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"9"}
-            type=""
-          ></Button>
-          <Button
-            onClick={() => handleOperator("*")}
-            label={"x"}
-            type="operator"
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"4"}
-            type=""
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"5"}
-            type=""
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"6"}
-            type=""
-          ></Button>
-          <Button
-            onClick={() => handleOperator("-")}
-            label={"-"}
-            type="operator"
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"1"}
-            type=""
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"2"}
-            type=""
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"3"}
-            type=""
-          ></Button>
-          <Button
-            onClick={() => handleOperator("+")}
-            label={"+"}
-            type="operator"
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"0"}
-            type="extended"
-          ></Button>
-          <Button
-            onClick={(e) => handleOperand(e.target.innerText)}
-            label={"."}
-            type=""
-          ></Button>
-          <Button
-            onClick={() => handleEvaluation()}
-            label={"="}
-            type="operator"
-          ></Button>
-        </ButtonsWrapper>
+        {
+          <ButtonsWrapper>
+            {NORMAL_BUTTONS.map((value, index) => {
+              return (
+                <Button
+                  key={index}
+                  handleClick={functionMaps[value.handleClick]}
+                  label={value.label}
+                  type={value.type}
+                  classTypes={value.classTypes}
+                ></Button>
+              );
+            })}
+          </ButtonsWrapper>
+        }
       </Wrapper>
+      <HistoryWrapper>{getHistories()}</HistoryWrapper>
     </div>
   );
 }
@@ -221,153 +204,300 @@ function App() {
 const SCIENTIFIC_BUTTONS = [
   {
     label: "{",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "}",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "mc",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "m+",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "m-",
-    type: "2nd",
+    classTypes: "2ndnormal",
+    type: "scientific2nd",
     handleClick: "handleScientificKey",
   },
   {
     label: "mr",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "2X",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "x2",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "x3",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "xy",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "ex",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "10x",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "1/x",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "2rX",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "3rX",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "yrX",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "ln",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "log10",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "x!",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "sin",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "cos",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "tan",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "e",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "EE",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "Rad",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "sinh",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "cosh",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "tanh",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "pi",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
   },
   {
     label: "Rand",
-    type: "",
+    classTypes: "normal",
+    type: "scientific",
     handleClick: "handleScientificKey",
+  },
+];
+
+const NORMAL_BUTTONS = [
+  {
+    label: "C",
+    classTypes: "gray",
+    type: "action",
+    handleClick: "handleClear",
+  },
+  {
+    label: "+/-",
+    type: "action",
+    classTypes: "gray",
+    handleClick: "handleSignChange",
+  },
+  {
+    label: "%",
+    type: "action",
+    classTypes: "gray",
+    handleClick: "handlePercentage",
+  },
+  {
+    label: "/",
+    type: "operator",
+    classTypes: "yellow",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "7",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "8",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "9",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "x",
+    type: "operator",
+    classTypes: "yellow",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "4",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "5",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "6",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "-",
+    type: "operator",
+    classTypes: "yellow",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "1",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "2",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "3",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "+",
+    type: "operator",
+    classTypes: "yellow",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "0",
+    type: "number",
+    classTypes: "normal extended2",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: ".",
+    type: "number",
+    classTypes: "normal",
+    handleClick: "handleOnClick",
+  },
+  {
+    label: "=",
+    type: "operator",
+    classTypes: "yellow",
+    handleClick: "handleOnClick",
   },
 ];
 export default App;
