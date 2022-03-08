@@ -94,6 +94,7 @@ function App() {
       setResult("");
     } else if (type !== "operator") {
       if (calc.operand2.includes(".") && value === ".") return;
+      if (calc.operand2.length>= 7) return; // currently allows calculation of numbers with max 7 digits
       setCalc({
         ...calc,
         operand2: calc.operand2 + value,
