@@ -185,7 +185,7 @@ function App() {
           isViewScientific
         ) {
           setisViewScientific(false);
-          app.target.getElementsByClassName("wrapper")[0].style.width = "520px";
+          app.target.getElementsByClassName("wrapper")[0].style.width = "373px";
         }
       },
       [isViewScientific]

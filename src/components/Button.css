@@ -7,9 +7,9 @@
     cursor: pointer;
     display: flex;
     font-size: 40px;
-    height: 100px;
     justify-content: center;
-    width: 100px;
+    aspect-ratio: 1;
+    width: 100%;
     transition: filter 0.3s ease-in;
     outline: none;
     border: none;
@@ -21,11 +21,12 @@
   
   .button.extended2 {
     width: 100%;
+    aspect-ratio: 2.2;
     grid-column: 1 / span 2;
     border-radius: 57.5px;
     position: relative;
+    padding-left: 18%;
     justify-content: flex-start;
-    padding: 44px;
   }
   
   .button.gray {
